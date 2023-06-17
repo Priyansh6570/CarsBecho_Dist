@@ -24,7 +24,6 @@ const createCar = async (req, res, next) => {
       const result = await cloudinary.v2.uploader.upload(images[i], {
         folder: 'cars',
         width: 1920,
-        height: 1080,
     crop: "scale",
       });
 
@@ -111,8 +110,8 @@ export { getAllPendingCars };
 
 
 const getAllCars = async (req, res) => {
-  const resPerPage = 9; // results per page
-  const currentPage = req.query.page || 1; // current page
+  const resPerPage = 9;
+  const currentPage = req.query.page || 1;
 
   try {
     const carCount = await Car.countDocuments({ verified: true });
@@ -123,16 +122,16 @@ const getAllCars = async (req, res) => {
     const apifeatures = new ApiFeatures(
       Car.find({
         verified: true,
-      }).populate('user', ['name', 'expireLimit', 'credit']).lean().sort({ createdAt: -1 }), // Sort by createdAt field in descending order (-1)
+      }).populate('user', ['name', 'expireLimit', 'credit']).lean().sort({ createdAt: -1 }).allowDiskUse(true),
       req.query
     )
       .search()
       .filter()
       .pagination(resPerPage);
 
-    const cars = await apifeatures.query; // get the cars for the current page
+    const cars = await apifeatures.query;
 
-    const totalPages = Math.ceil(carCount / resPerPage); // calculate the total number of pages
+    const totalPages = Math.ceil(carCount / resPerPage);
 
     res.status(200).json({
       success: true,
