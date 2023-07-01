@@ -84,6 +84,10 @@ const carSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  showMobile: {
+    type: Boolean,
+    default: true,
+  },
   verified: {
     type: Boolean,
     default: false,

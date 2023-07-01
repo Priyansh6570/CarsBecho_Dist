@@ -18,14 +18,9 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     crop: "scale",
   });
 
-  const { name, email, password, mobile, role, address, dealershipName } = req.body;
+  const { name, email, password, mobile, role} = req.body;
   let credit = 1;
   let expireLimit = 30;
-
-  if (role === "dealer" || role === "broker") {
-    credit = 0;
-    expireLimit = 0;
-  }
 
   const user = await User.create({
     name,
@@ -33,8 +28,6 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     password,
     mobile,
     role,
-    address,
-    dealershipName,
     avatar: {
       public_id: myCloud.public_id,
       url: myCloud.secure_url,
@@ -171,7 +164,7 @@ export const getUserProfile = catchAsyncError(async (req, res, next) => {
 });
 
 // wish list of a user
-const addToWishList = async (req, res, next) => {
+export const addToWishList = async (req, res, next) => {
   const { carId } = req.body;
   const { _id } = req.user;
   try {
@@ -206,7 +199,6 @@ const addToWishList = async (req, res, next) => {
     });
   }
 };
-export { addToWishList };
 
 // Get WISHLIST of currently logged in user => /api/v1/wishlist
 export const getWishList = catchAsyncError(async (req, res, next) => {
@@ -415,7 +407,10 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(`User does not found with id: ${req.params.id}`, 404));
   }
 
-  // Remove avatar from cloudinary: TODO
+  // Remove avatar from cloudinary
+
+  const imageId = user.avatar[0].public_id;
+  await cloudinary.v2.uploader.destroy(imageId);
 
   await user.remove();
 

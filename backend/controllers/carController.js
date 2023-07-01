@@ -24,16 +24,19 @@ const createCar = async (req, res, next) => {
       const result = await cloudinary.v2.uploader.upload(images[i], {
         folder: 'cars',
         width: 1920,
-    crop: "scale",
+        crop: "scale",
       });
 
-      imagesLinks.push({
+      const imageLink = {
         public_id: result.public_id,
         url: result.secure_url,
-      });
+      };
+
+      imagesLinks.push(imageLink);
     }
 
-    req.body.images = imagesLinks;
+    // Modify the carData object to store the Cloudinary URL in the image field
+    req.body.image = imagesLinks;
     req.body.user = req.user.id;
 
     const carData = { ...req.body, user: req.user._id };
@@ -59,7 +62,6 @@ const createCar = async (req, res, next) => {
 export { createCar };
 
 // Admin can approve the car submitted by a seller and are pending for approval.
-
 const approveCar = async (req, res, next) => {
   try {
     const car = await Car.findById(req.params.id);
@@ -86,7 +88,6 @@ const approveCar = async (req, res, next) => {
 export { approveCar };
 
 // Get all cars pending for approval
-
 const getAllPendingCars = async (req, res) => {
   const resperpage = 6;
   const carCount = await Car.countDocuments({verified:false});
@@ -159,7 +160,7 @@ const getAllCarsBySeller = async (req, res) => {
 
   try {
     const apifeatures = new ApiFeatures(
-      Car.find({ user: req.params.userId, verified: true }).sort({ createdAt: -1 }),
+      Car.find({ user: req.params.userId }).sort({ createdAt: -1 }),
       req.query
     );
     const cars = await apifeatures.query;
@@ -183,7 +184,7 @@ export { getAllCarsBySeller };
 
 const getCarDetails = async (req, res, next) => {
   try {
-    const car = await Car.findById(req.params.id).populate('user', ['name', 'email', 'avatar', 'wishlist', 'mobile']).lean();
+    const car = await Car.findById(req.params.id).populate('user', ['name', 'avatar', 'mobile', 'role', 'city', 'address', 'dealershipName', 'tagline']).lean();
     if (!car) {
       return next(new ErrorHandler('Car not found', 404));
     }

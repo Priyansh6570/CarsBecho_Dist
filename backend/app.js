@@ -5,7 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
-import path from 'path';
+// import path from 'path';
 
 const app = express();
 
@@ -51,7 +51,7 @@ const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 app.get('*', (req, res) => {
- res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
+  res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
 });
 
 // Error Handler (last piece of middleware)
