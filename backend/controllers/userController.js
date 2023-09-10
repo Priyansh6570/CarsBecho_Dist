@@ -12,13 +12,25 @@ import mongoose from 'mongoose';
  
 // Register a user => /api/v1/register
 export const registerUser = catchAsyncError(async (req, res, next) => {
-  const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-    folder: "avatars",
-    width: 1920,
-    crop: "scale",
-  });
+  let avatar = {
+    public_id: "default_avatar",
+    url: "https://res.cloudinary.com/dtwkhnkns/image/upload/v1688298076/avatars/man_p7cnjn.png",
+  };
 
-  const { name, email, password, mobile, role} = req.body;
+  if (req.body.avatar) {
+    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+      folder: "avatars",
+      width: 800,
+      crop: "scale",
+    });
+
+    avatar = {
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url,
+    };
+  }
+
+  const { name, email, password, mobile, role } = req.body;
   let credit = 1;
   let expireLimit = 30;
 
@@ -28,16 +40,14 @@ export const registerUser = catchAsyncError(async (req, res, next) => {
     password,
     mobile,
     role,
-    avatar: {
-      public_id: myCloud.public_id,
-      url: myCloud.secure_url,
-    },
+    avatar,
     credit,
     expireLimit,
   });
 
   sendToken(user, 201, res);
 });
+
 
 // Login user => /api/v1/login
 export const loginUser = catchAsyncError(async (req, res, next) => {
@@ -70,6 +80,8 @@ export const logout = catchAsyncError(async (req, res, next) => {
   res.cookie('token', null, {
     expires: new Date(Date.now()),
     httpOnly: true,
+    sameSite: 'None',
+    secure: true,
   });
 
   res.status(200).json({
@@ -91,7 +103,8 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const resetPasswordUrl = `${req.protocol}://${req.get('host')}/password/reset/${resetToken}`;
+  const resetPasswordUrl = `https://www.carsbecho.com/password/reset/${resetToken}`;
+
 
   const message = `Your password reset token is as follow:\n\n${resetPasswordUrl}\n\nIf you have not requested this email, then ignore it.`;
 
@@ -169,29 +182,34 @@ export const addToWishList = async (req, res, next) => {
   const { _id } = req.user;
   try {
     const user = await User.findById(_id);
-    const alreadyInWishList = user.wishList.find((r) => r.toString() === carId.toString());
-    let userUpdate;
+    const alreadyInWishList = user.wishList.find((r) => r.toString() === carId.toString()); // line 184
 
-    if (alreadyInWishList) {
-      // Remove the car from wishlist
-      userUpdate = await User.findByIdAndUpdate(_id, { $pull: { wishList: carId } }, { new: true });
-      res.status(200).json({
-        success: true,
-        message: 'Car removed from wish list',
-      });
+    // Validate the type of 'alreadyInWishList' object before further processing
+    if (typeof alreadyInWishList === 'boolean') { // Check if it's a boolean type
+      let userUpdate;
+      if (alreadyInWishList) {
+        // Remove the car from wishlist
+        userUpdate = await User.findByIdAndUpdate(_id, { $pull: { wishList: carId } }, { new: true });
+        res.status(200).json({
+          success: true,
+          message: 'Car removed from wish list',
+        });
+      } else {
+        // Add the car to wishlist
+        userUpdate = await User.findByIdAndUpdate(_id, { $push: { wishList: carId } }, { new: true });
+
+        res.status(200).json({
+          success: true,
+          message: 'Car added to wish list',
+        });
+      }
+
+      // Optional: You can send the updated wishlist back in the response if needed
+      const updatedWishlist = userUpdate.wishList;
+      // ...
     } else {
-      // Add the car to wishlist
-      userUpdate = await User.findByIdAndUpdate(_id, { $push: { wishList: carId } }, { new: true });
-
-      res.status(200).json({
-        success: true,
-        message: 'Car added to wish list',
-      });
+      throw new Error('Invalid type for alreadyInWishList');
     }
-
-    // Optional: You can send the updated wishlist back in the response if needed
-    const updatedWishlist = userUpdate.wishList;
-    // ...
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -260,7 +278,7 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
     const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, { 
       folder: "avatars",
-      width: 1920,
+      width: 800,
       crop: "scale",
     });
 
@@ -285,13 +303,34 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
 // Get all users => /api/v1/admin/users
 export const allUsers = catchAsyncError(async (req, res, next) => {
+  const userCity = req.user.city;
+
+  //all user
   const users = await User.find();
+
+  //based on role
+
+  const dealers = await User.find({ city: userCity, role: "dealer" });
+  const brokers = await User.find({ city: userCity, role: "broker" });
+  const userRole = await User.find({ city: userCity, role: "user" });
+
+  //based on planType
+  const dealersWithSilverPlan = await User.find({ city: userCity, role: "dealer", planType: "Silver" });
+  const dealersWithPremiumPlan = await User.find({ city: userCity, role: "dealer", planType: "Premium" });
+  const dealersWithPlatinumPlan = await User.find({ city: userCity, role: "dealer", planType: "Platinum" });
 
   res.status(200).json({
     success: true,
+    dealers,
+    brokers,
     users,
+    dealersWithSilverPlan,
+    dealersWithPremiumPlan,
+    dealersWithPlatinumPlan,
+    userRole,
   });
 });
+
 
 // Get user details => /api/v1/admin/user/:id
 export const getUserDetails = catchAsyncError(async (req, res, next) => {
@@ -342,6 +381,37 @@ export const updateUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// @route   GET /purchased-Cars
+// @desc    Get user's purchased Cars
+export const purchasedCars = catchAsyncError(async (req, res) => {
+  const { user } = req;
+  try {
+    const fetchedUser = await User.findById(user.id);
+    await fetchedUser.populate('purchasedCars');
+    res.status(200).json(fetchedUser.purchasedCars);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errors: [{ msg: 'Server error' }] });
+  }
+});
+
+// @route   GET /posted-Cars
+// @desc    Get user's posted Cars
+export const postedCars = catchAsyncError(async (req, res) => {
+  const { user } = req;
+  try {
+    const fetchedUser = await User.findById(user.id);
+    await fetchedUser.populate('postedAds');
+    res.status(200).json(fetchedUser.postedAds);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errors: [{ msg: 'Server error' }] });
+  }
+});
+
+
+
+
 // Update credit and expireLimit Admin => /api/v1/admin/updateCreditAndExpireLimit
 export const updateCreditAndExpireLimit = async (req, res, next) => {
   try {
@@ -362,7 +432,14 @@ export const updateCreditAndExpireLimit = async (req, res, next) => {
 
     // Make sure the updatedCredit doesn't go below 0
     user.credit = Math.max(updatedCredit, 0);
+
+
+    // check if expire time is 2 then set expireLimit to 2
+    if (req.body.expireTime === 2) {
+      user.expireLimit = req.body.expireTime;
+    } else {
     user.expireLimit += req.body.expireTime;
+    }
 
     // Check if credit and expireLimit are updated
     const isUpdated = user.isModified('credit') || user.isModified('expireLimit');

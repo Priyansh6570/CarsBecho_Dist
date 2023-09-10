@@ -20,12 +20,23 @@ const createCar = async (req, res, next) => {
 
     const imagesLinks = [];
 
+    // for (let i = 0; i < images.length; i++) {
+    //   const result = await cloudinary.v2.uploader.upload(images[i], {
+    //     folder: 'cars',
+    //     width: 1920,
+    //     crop: 'scale',
+    //   });
+
     for (let i = 0; i < images.length; i++) {
-      const result = await cloudinary.v2.uploader.upload(images[i], {
-        folder: 'cars',
-        width: 1920,
-        crop: "scale",
-      });
+  const result = await cloudinary.v2.uploader.upload(images[i], {
+    folder: 'cars',
+    width: 1000, // Adjust the width to fit your website's design
+    crop: 'scale',
+    quality: 'auto:good', // Use an appropriate quality setting for JPEG images
+    fetch_format: 'auto', // Automatically select the best format (JPEG, PNG, WebP)
+    flags: 'progressive', // Enable progressive rendering for JPEG images
+    lazy: true, // Enable lazy loading
+  });
 
       const imageLink = {
         public_id: result.public_id,
@@ -37,29 +48,37 @@ const createCar = async (req, res, next) => {
 
     // Modify the carData object to store the Cloudinary URL in the image field
     req.body.image = imagesLinks;
-    req.body.user = req.user.id;
 
-    const carData = { ...req.body, user: req.user._id };
+    const carData = { ...req.body, user: req.params.id };
 
     const car = await Car.create(carData);
 
     // Decrease user's credit by 1
-    req.user.credit -= 1;
-    await req.user.save();
+    // find user by id
+
+    const user = await User.findById(req.params.id);
+
+    user.credit -= 1;
+
+    await user.save();
 
     res.status(201).json({
       success: true,
       car,
       message: 'Car Sent for approval',
+      user: req.user,
     });
   } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       error: error.message,
     });
   }
 };
+
 export { createCar };
+
 
 // Admin can approve the car submitted by a seller and are pending for approval.
 const approveCar = async (req, res, next) => {
@@ -89,11 +108,10 @@ export { approveCar };
 
 // Get all cars pending for approval
 const getAllPendingCars = async (req, res) => {
-  const resperpage = 6;
   const carCount = await Car.countDocuments({verified:false});
 
   try {
-    const apifeatures = new ApiFeatures(Car.find({verified:false}), req.query).pagination(resperpage);
+    const apifeatures = new ApiFeatures(Car.find({verified:false}), req.query);
     const cars = await apifeatures.query;
     res.status(200).json({
       success: true,
@@ -109,7 +127,7 @@ const getAllPendingCars = async (req, res) => {
 };
 export { getAllPendingCars };
 
-
+// Get all cars
 const getAllCars = async (req, res) => {
   const resPerPage = 9;
   const currentPage = req.query.page || 1;
@@ -120,15 +138,16 @@ const getAllCars = async (req, res) => {
 
     const keyword = req.query.keyword || [];
 
+    const skip = (currentPage - 1) * resPerPage;
+
     const apifeatures = new ApiFeatures(
       Car.find({
         verified: true,
-      }).populate('user', ['name', 'expireLimit', 'credit']).lean().sort({ createdAt: -1 }).allowDiskUse(true),
+      }).populate('user', ['name', 'expireLimit', 'credit', 'role']).lean().sort({ createdAt: -1 }).allowDiskUse(true).skip(skip).limit(resPerPage),
       req.query
     )
       .search()
-      .filter()
-      .pagination(resPerPage);
+      .filter();
 
     const cars = await apifeatures.query;
 
@@ -151,6 +170,7 @@ const getAllCars = async (req, res) => {
   }
 };
 export { getAllCars };
+
 
 // Get all cars from a specific seller
 
@@ -205,40 +225,39 @@ export { getCarDetails };
 
 const updateCar = async (req, res, next) => {
   try {
+    // Images Start Here
+    let images = [];
 
-      // Images Start Here
-  let images = [];
-
-  if (typeof req.body.images === "string") {
-    images.push(req.body.images);
-  } else {
-    images = req.body.images;
-  }
-
-  if (images !== undefined) {
-    // Deleting Images From Cloudinary
-    for (let i = 0; i < car.images.length; i++) {
-      await cloudinary.v2.uploader.destroy(car.images[i].public_id);
+    if (typeof req.body.images === 'string') {
+      images.push(req.body.images);
+    } else if (Array.isArray(req.body.images)) { // Validate if it's an array
+      images = req.body.images;
     }
 
-    const imagesLinks = [];
+    if (Array.isArray(images)) { 
+      // Deleting Images From Cloudinary
+      for (let i = 0; i < Math.min(images.length, car.images.length); i++) {
+        await cloudinary.v2.uploader.destroy(car.images[i]?.public_id);
+      }
 
-    for (let i = 0; i < images.length; i++) {
-      const result = await cloudinary.v2.uploader.upload(images[i], {
-        folder: "cars",
-      });
+      const imagesLinks = [];
 
-      imagesLinks.push({
-        public_id: result.public_id,
-        url: result.secure_url,
-      });
+      for (let i = 0; i < images.length; i++) {
+        const result = await cloudinary.v2.uploader.upload(images[i], {
+          folder: 'cars',
+        });
+
+        imagesLinks.push({
+          public_id: result.public_id,
+          url: result.secure_url,
+        });
+      }
+
+      req.body.images = imagesLinks;
     }
 
-    req.body.images = imagesLinks;
-  }
     const car = await Car.findByIdAndUpdate(
       req.params.car_id,
-      
       req.body,
       {
         new: true,
@@ -265,6 +284,7 @@ const updateCar = async (req, res, next) => {
     });
   }
 };
+
 export { updateCar };
 
 // Delete car -- Admin
@@ -275,9 +295,21 @@ const deleteCar = async (req, res, next) => {
     if (!car) {
       return next(new ErrorHandler('Car not found', 404));
     }
+
+    // Delete car photos from Cloudinary
+    if (car.image && car.image.length > 0) {
+      for (const imageLink of car.image) {
+        // Extract the public_id from the image URL
+        const public_id = imageLink.public_id;
+
+        // Delete the image from Cloudinary
+        await cloudinary.v2.uploader.destroy(public_id);
+      }
+    }
+
     req.user.credit += 1;
     await req.user.save();
-    
+
     await car.remove();
     res.status(200).json({
       success: true,
@@ -290,6 +322,7 @@ const deleteCar = async (req, res, next) => {
     });
   }
 };
+
 export { deleteCar };
 
 // Create new review => /api/v1/review

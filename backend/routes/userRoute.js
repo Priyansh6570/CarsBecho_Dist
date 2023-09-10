@@ -12,6 +12,8 @@ import {
   updatePassword,
   updateProfile,
   getUserDetails,
+  purchasedCars,
+  postedCars,
   saveAddress,
   allUsers,
   updateUser,
@@ -42,10 +44,14 @@ router.route('/password/update').put(isAuthenticatedUser, updatePassword);
 
 router.route('/me/update').put(isAuthenticatedUser, updateProfile); 
 
-router.route('/updateCreditAndExpireLimit').put(isAuthenticatedUser, authorizeRoles('admin', 'superUser'), updateCreditAndExpireLimit);
+router.route('/updateCreditAndExpireLimit').put(isAuthenticatedUser, authorizeRoles('admin', 'superUser', 'drm'), updateCreditAndExpireLimit);
 
-router.route('/admin/users').get(isAuthenticatedUser, authorizeRoles('admin', 'superUser'), allUsers); 
+router.route('/admin/users').get(isAuthenticatedUser, authorizeRoles('admin', 'superUser', 'drm'), allUsers); 
 
 router.route('/admin/user/:id').get(getUserDetails).put(isAuthenticatedUser, authorizeRoles('admin', 'superUser'), updateUser).delete(isAuthenticatedUser, authorizeRoles('admin', 'superUser'), deleteUser);
+
+router.get('/cars/purchased', isAuthenticatedUser, purchasedCars);
+
+router.get('/cars/posted', isAuthenticatedUser, postedCars);
 
 export default router;

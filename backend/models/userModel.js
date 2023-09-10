@@ -32,33 +32,36 @@ const userSchema = new mongoose.Schema({
 
   address: {
     type: String,
+    default: ''
   },
 
   dealershipName : {
     type: String,
+    default: ''
   },
 
   tagLine : {
     type: String,
+    default: ''
   },
 
   city : {
     type: String,
+    default: ''
   },
 
   planType : {
     type: String,
+    default: ''
   },
 
   avatar: [
     {
       public_id: {
         type: String,
-        required: true,
       },
       url: {
         type: String,
-        required: true,
       },
     },
   ],
@@ -84,6 +87,25 @@ const userSchema = new mongoose.Schema({
     },
   ],
 
+  purchasedCars: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'ad',
+    },
+  ],
+  postedAds: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'ad',
+    },
+  ],
+  bids: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'ad',
+    },
+  ],
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -98,8 +120,12 @@ userSchema.pre('save', async function (next) {
     next();
   }
 
-  this.password = await bcrypt.hash(this.password, 10);
+  const salt = await bcrypt.genSalt(); // Generate a random salt
+  this.password = await bcrypt.hash(this.password, salt);
+
+  next();
 });
+
 
 // JWT token
 userSchema.methods.getJwtToken = function () {
