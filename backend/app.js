@@ -70,10 +70,10 @@ app.use('/api/v1', room);
 
 // Serve static assets if in production
 const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../frontend/dist/index.html'));
+  res.sendFile(path.resolve(__dirname, 'dist/index.html'));
 });
 
 // Error Handler (last piece of middleware)
