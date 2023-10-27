@@ -46,27 +46,27 @@ app.use(express.json({ limit: '100mb' }));
 app.use(fileUpload());
 
 // Swagger
-const swaggerDocument = yaml.load('./swagger.yaml');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+//const swaggerDocument = yaml.load('./swagger.yaml');
+//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Route Imports
 import car from './routes/carRoute.js';
 import user from './routes/userRoute.js';
 import order from './routes/orderRoute.js';
 import subscription from './routes/subscriptionRoute.js';
-import ad from './routes/adRoute.js';
-import auction from './routes/auctionRoute.js';
-import bid from './routes/bidRoute.js';
-import room from './routes/roomRoute.js';
+//import ad from './routes/adRoute.js';
+//import auction from './routes/auctionRoute.js';
+//import bid from './routes/bidRoute.js';
+//import room from './routes/roomRoute.js';
 
 app.use('/api/v1', car);
 app.use('/api/v1', user);
 app.use('/api/v1', order);
 app.use('/api/v1', subscription);
-app.use('/api/v1', ad);
-app.use('/api/v1', auction);
-app.use('/api/v1', bid);
-app.use('/api/v1', room);
+//app.use('/api/v1', ad);
+//app.use('/api/v1', auction);
+//app.use('/api/v1', bid);
+//app.use('/api/v1', room);
 
 // Serve static assets if in production
 const __dirname = path.resolve();
@@ -82,14 +82,14 @@ app.use(errorMiddleware);
 export default app;
 
 // Create an HTTP server using your express app
-const server = http.createServer(app);
+//const server = http.createServer(app);
 
 // Initialize socket.io using the HTTP server
-const io = init(server);
-const adIo = initAdIo(server, '/socket/adpage');
+//const io = init(server);
+//const adIo = initAdIo(server, '/socket/adpage');
 
 // Listen to the server
-const PORT = process.env.SOCKET_PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`### Server running on port ${PORT}`);
-});
+//const PORT = process.env.SOCKET_PORT || 3000;
+//server.listen(PORT, () => {
+  //console.log(`### Server running on port ${PORT}`);
+//});
