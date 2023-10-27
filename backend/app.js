@@ -7,9 +7,9 @@ import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import http from 'http';
-import {init, initAdIo} from './socket.js';
-import swaggerUi from 'swagger-ui-express';
-import yaml from 'yamljs';
+// import {init, initAdIo} from './socket.js';
+// import swaggerUi from 'swagger-ui-express';
+// import yaml from 'yamljs';
 
 // import csrf from 'csurf';
 
