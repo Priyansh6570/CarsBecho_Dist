@@ -1,0 +1,19 @@
+.nav-link_sideBar{
+    padding: 16px;
+    display: flex;
+    align-content: center;
+}
+.overlay {
+    transition: 850ms;
+}
+.overlay.active {
+    left: 0;
+    transition: 450ms;
+  }
+.menu-bar-close {
+    transition: 500ms;
+}
+.menu-bar-close.active {
+    transition: 450ms;
+    opacity: 1;
+  }

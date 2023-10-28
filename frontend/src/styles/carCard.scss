@@ -1,0 +1,31 @@
+.mobile-carCard {
+    background-color: white;
+    // box-shadow: 0px 6px 10px rgba(0,0,0,.05);
+    border: 1px solid rgba(36,39,44,.1);
+}
+.carCard {
+    background: #fff;
+border: 1px solid rgba(36,39,44,.1);
+box-shadow: 0px 6px 10px rgba(0,0,0,.05);
+border-radius: 16px;
+overflow: hidden;
+height: 324px;
+margin-bottom: 24px;
+}
+.carDetails {
+    padding: 18px 16px 14px;
+}
+
+
+// .carCard {
+  
+//       img {
+//         object-fit: cover;
+//         transition: transform 0.2s ease-out;
+//       }
+  
+//       &:hover img {
+//         transform: scale(1.02);
+//       }
+    
+//   }

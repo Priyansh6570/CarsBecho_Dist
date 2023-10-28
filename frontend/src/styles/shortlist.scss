@@ -1,0 +1,11 @@
+.shortlist-banner {
+  // background-image: url('/Images/bg-car-front.jpg');
+  background-size: cover;
+  background-position: center -100px;
+}
+
+@media (max-width: 767px) {
+  .shortlist-banner {
+    background-position: center 250px;
+  }
+}

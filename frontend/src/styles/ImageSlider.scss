@@ -1,0 +1,25 @@
+.overFlow_container::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    // background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.1),);
+        z-index: 1;
+}
+
+@media screen and (max-width: 649px) {
+
+    .overFlow_container::before {
+        border-radius: 10px;
+    }
+    .overFlow_container{
+        border-radius: 10px;
+        width: 95vw;
+    }
+    .dotstyle_container{
+        position: relative;
+        // left: 50px;
+    }
+}
+    
