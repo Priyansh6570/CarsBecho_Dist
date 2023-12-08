@@ -1,7 +1,0 @@
-User-agent: Mediapartners-Google
-allow: /
-User-agent: *
-allow: *.js
-allow: *.scss
-Disallow: /Images/
-Disallow: /admin/
