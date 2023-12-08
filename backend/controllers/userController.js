@@ -409,9 +409,6 @@ export const postedCars = catchAsyncError(async (req, res) => {
   }
 });
 
-
-
-
 // Update credit and expireLimit Admin => /api/v1/admin/updateCreditAndExpireLimit
 export const updateCreditAndExpireLimit = async (req, res, next) => {
   try {

@@ -43,11 +43,13 @@ import car from './routes/carRoute.js';
 import user from './routes/userRoute.js';
 import order from './routes/orderRoute.js';
 import subscription from './routes/subscriptionRoute.js';
+import insurance from './routes/insuranceRoute.js';
 
 app.use('/api/v1', car);
 app.use('/api/v1', user);
 app.use('/api/v1', order);
 app.use('/api/v1', subscription);
+app.use('/api/v1', insurance);
 
 // Serve static assets if in production
 // const __dirname = path.resolve();
